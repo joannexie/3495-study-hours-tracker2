@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Study Tracker - Recent</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div>Logged in as <b>{{username}}</b></div>
+    <div>
+      <a href="/enter">Back</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>Recent logs</h1>
+    <table>
+      <thead><tr><th>Subject</th><th>Hours</th><th>Date</th><th>Saved at</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{r.subject}}</td>
+            <td>{{"%.2f"|format(r.hours)}}</td>
+            <td>{{r.study_date}}</td>
+            <td>{{r.created_at}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

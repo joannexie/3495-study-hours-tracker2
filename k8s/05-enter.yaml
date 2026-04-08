@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enter-service
+  namespace: study-hours
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: enter-service
+  template:
+    metadata:
+      labels:
+        app: enter-service
+    spec:
+      containers:
+        - name: enter-service
+          image: 772161510099.dkr.ecr.us-west-2.amazonaws.com/enter-service:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: study-hours-config
+                  key: PORT_ENTER
+            - name: AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: study-hours-config
+                  key: AUTH_URL
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: study-hours-config
+                  key: MYSQL_HOST
+            - name: MYSQL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: study-hours-config
+                  key: MYSQL_PORT
+            - name: MYSQL_DB
+              valueFrom:
+                secretKeyRef:
+                  name: study-hours-secrets
+                  key: MYSQL_DATABASE
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: study-hours-secrets
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: study-hours-secrets
+                  key: MYSQL_PASSWORD
+            - name: FLASK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: study-hours-secrets
+                  key: FLASK_SECRET_KEY
+          resources:
+            requests:
+              cpu: 150m
+              memory: 256Mi
+            limits:
+              cpu: 400m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: enter-service
+  namespace: study-hours
+spec:
+  type: LoadBalancer
+  selector:
+    app: enter-service
+  ports:
+    - port: 80
+      targetPort: 5000

@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: study_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: studytracker
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init/mysql-init.sql:/docker-entrypoint-initdb.d/mysql-init.sql:ro
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:7
+    container_name: study_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+  auth-service:
+    build: ./services/auth-service
+    container_name: auth_service
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      JWT_SECRET: supersecret_dev_change_me
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+  enter-service:
+    build: ./services/enter-service
+    container_name: enter_service
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      AUTH_URL: http://auth-service:3000
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: studytracker
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      FLASK_SECRET_KEY: dev_secret_change_me
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+      - auth-service
+    networks:
+      - backend
+
+  analytics-service:
+    build: ./services/analytics-service
+    container_name: analytics_service
+    restart: unless-stopped
+    environment:
+      AUTH_URL: http://auth-service:3000
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: studytracker
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MONGO_URL: mongodb://mongo:27017
+      MONGO_DB: studytracker
+      RUN_EVERY_SECONDS: 10
+    depends_on:
+      - mysql
+      - mongo
+    networks:
+      - backend
+
+  show-service:
+    build: ./services/show-service
+    container_name: show_service
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      AUTH_URL: http://auth-service:3000
+      MONGO_URL: mongodb://mongo:27017
+      MONGO_DB: studytracker
+      SESSION_SECRET: dev_session_change_me
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mongo
+      - auth-service
+      - analytics-service
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  mysql_data:
+  mongo_data:

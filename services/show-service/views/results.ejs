@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Study Tracker - Results</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div>Logged in as <b><%= username %></b></div>
+    <div>
+      <a href="http://localhost:5000" target="_blank">Enter data</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>Analytics</h1>
+
+    <% if (!doc) { %>
+      <p>No analytics yet. Add some study logs first, then refresh in a few seconds.</p>
+    <% } else { %>
+      <p class="small">Generated at: <%= new Date(doc.generated_at).toLocaleString() %></p>
+
+      <div class="grid">
+        <div class="stat">
+          <div class="label">Average study time (hours)</div>
+          <div class="value"><%= (doc.average_study_time || 0).toFixed(2) %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Most studied subject</div>
+          <div class="value"><%= doc.most_studied_subject || "-" %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Least studied subject</div>
+          <div class="value"><%= doc.least_studied_subject || "-" %></div>
+        </div>
+      </div>
+
+      <h2>Total hours per subject</h2>
+      <table>
+        <thead><tr><th>Subject</th><th>Total hours</th></tr></thead>
+        <tbody>
+          <% const totals = doc.totals_per_subject || {}; %>
+          <% Object.keys(totals).sort().forEach(s => { %>
+            <tr><td><%= s %></td><td><%= Number(totals[s]).toFixed(2) %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <p class="small">Tip: refresh the page after you add more logs.</p>
+    <% } %>
+  </div>
+</body>
+</html>
